@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        coin_folder: ['binance-smart-chain', 'solana']
+        coin_folder: ['binance-smart-chain']
 
     env:  # set global vas
 #      DOCKER_REPO: tonstakers/ton-proxy
@@ -40,6 +40,7 @@ jobs:
 
       - name: Define folders and variables
         id: define_folders
+        shell: bash
         run: |
           declare -A folder_variable_map
           folder_variable_map[binance-smart-chain]="denisitpro/coin-bsc"
@@ -53,7 +54,7 @@ jobs:
           done
 
       - name: Print the variable
-        run: echo "The variable is $DOCKER_REPO"
+        run: echo "The DOCKER_REPO is $DOCKER_REPO"
 
 #
 #      - name: Login to Docker Hub
