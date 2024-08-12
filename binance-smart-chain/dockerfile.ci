@@ -1,0 +1,31 @@
+# Stage 1: Build
+ARG UBUNTU_IMAGE_VERSION
+FROM ubuntu:${UBUNTU_IMAGE_VERSION} AS sources
+
+RUN apt update -y && apt -y install wget
+
+ARG VERSION
+RUN echo $VERSION
+
+RUN wget -q https://github.com/bnb-chain/bsc/releases/download/${VERSION}/geth_linux
+RUN mv geth_linux bscd
+RUN chmod +x bscd
+
+
+# Stage 2: Run
+ARG UBUNTU_IMAGE_VERSION
+FROM ubuntu:${UBUNTU_IMAGE_VERSION}
+
+WORKDIR /data
+COPY --from=sources  bscd /usr/local/bin/
+
+ARG TIMESTAMP
+ARG VERSION
+RUN echo ${VERSION} > version.txt
+
+LABEL timestamp="${TIMESTAMP}"
+LABEL version="${VERSION}"
+
+# default api port
+EXPOSE 8545
+CMD ["bscd"]
