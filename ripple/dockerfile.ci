@@ -1,6 +1,6 @@
 # Stage 1: Build
-ARG UBUNTU_IMAGE_VERSION
-FROM ubuntu:${UBUNTU_IMAGE_VERSION} as builder
+ARG UBUNTU_IMAGE_VERSION="22.04"
+FROM ubuntu:${UBUNTU_IMAGE_VERSION} AS builder
 
 WORKDIR /opt
 RUN apt update && apt install -y curl wget
