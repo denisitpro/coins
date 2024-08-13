@@ -2,46 +2,31 @@
 ARG UBUNTU_IMAGE_VERSION
 FROM ubuntu:${UBUNTU_IMAGE_VERSION} as builder
 
+RUN apt update && apt install -y curl wget
+
+WORKDIR /opt
+
 ARG VERSION
-
-RUN apt-get update && apt-get install --yes curl git libssl-dev python3.10-dev python3-pip make g++-11 cmake
-
-
-WORKDIR /opt
-RUN curl --location --remote-name \
-  "https://github.com/Kitware/CMake/releases/download/v3.25.1/cmake-3.25.1.tar.gz"
-RUN tar -xzf cmake-3.25.1.tar.gz
-RUN rm cmake-3.25.1.tar.gz
-WORKDIR /opt/cmake-3.25.1
-RUN ./bootstrap --parallel=$(nproc)
-RUN make --jobs $(nproc)
-RUN make install
-WORKDIR /opt
-
-RUN pip3 install 'conan<2'
-
-RUN git clone https://github.com/XRPLF/rippled.git
-WORKDIR /opt/rippled
-RUN git checkout ${VERSION}
-
-RUN conan export external/snappy snappy/1.1.10@
-RUN conan export external/soci soci/4.0.3@
-RUN mkdir build
-WORKDIR /opt/rippled/build
-RUN pwd
-RUN ls -la
-RUN conan install .. --output-folder . --build missing --settings build_type=Release
-RUN cmake -DCMAKE_TOOLCHAIN_FILE:FILEPATH=build/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
-RUN cmake --build . -- --quiet
+RUN wget https://repos.ripple.com/repos/rippled-deb/pool/stable/rippled_${VERSION}-1_amd64.deb -O rippled_${VERSION}-1_amd64.deb
+RUN dpkg-deb -xv  rippled_2.2.1-1_amd64.deb /opt
 
 # Stage 2: Run
 ARG UBUNTU_IMAGE_VERSION
 FROM ubuntu:${UBUNTU_IMAGE_VERSION}
-RUN apt-get update && \
-        DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential openssl wget curl && \
-        rm -rf /var/lib/apt/lists/*
+
+WORKDIR /data
+COPY --from=builder /opt/opt/ripple/bin/* /usr/local/bin/
 
 
-COPY --from=builder /opt/rippled/build/rippled /usr/local/bin/
+ARG TIMESTAMP
+ARG VERSION
+RUN echo "version: ${VERSION}" > version.txt
+RUN echo "timestamp: ${TIMESTAMP}" >> version.txt
+
+LABEL timestamp="${TIMESTAMP}"
+LABEL version="${VERSION}"
+
+# port rpc local admin
+expose 5005
 
 CMD ["rippled"]
