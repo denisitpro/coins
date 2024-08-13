@@ -8,6 +8,8 @@ WORKDIR /opt
 
 ARG VERSION
 RUN wget -q https://repos.ripple.com/repos/rippled-deb/pool/stable/rippled_${VERSION}-1_amd64.deb -O rippled_${VERSION}-1_amd64.deb
+
+ARG VERSION
 RUN dpkg-deb -xv  rippled_${VERSION}-1_amd64.deb /opt
 
 # Stage 2: Run
