@@ -13,17 +13,15 @@ ARG VERSION
 RUN dpkg-deb -xv  rippled_${VERSION}-1_amd64.deb /opt
 
 # Stage 2: Run
-ARG UBUNTU_IMAGE_VERSION
 FROM ubuntu:${UBUNTU_IMAGE_VERSION}
 
 WORKDIR /data
 COPY --from=builder /opt/opt/ripple/bin/* /usr/local/bin/
 
-
 ARG TIMESTAMP
 ARG VERSION
-RUN echo "version: ${VERSION}" > version.txt
-RUN echo "timestamp: ${TIMESTAMP}" >> version.txt
+RUN echo "version: ${VERSION}" > version.txt && \
+    echo "timestamp: ${TIMESTAMP}" >> version.txt
 
 LABEL timestamp="${TIMESTAMP}"
 LABEL version="${VERSION}"
