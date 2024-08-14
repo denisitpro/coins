@@ -1,11 +1,11 @@
-name: build bsc
+name: build solana
 
 on:
   push:
     paths:
 #      - '**/*'  # only debug
-      - binance-smart-chain/version.txt
-      - binance-smart-chain/dockerfile.ci
+      - solana/version.txt
+      - solana/dockerfile.ci
 
 
 jobs:
@@ -14,10 +14,10 @@ jobs:
 
     strategy:
       matrix:
-        coin_folder: ['binance-smart-chain']
+        coin_folder: ['solana']
 
     env:  # set global vas
-      DOCKER_REPO: denisitpro/coin-bsc
+      DOCKER_REPO: denisitpro/coin-solana
       DOCKER_FILE: dockerfile.ci
       UBUNTU_IMAGE_VERSION: "24.04"
 
