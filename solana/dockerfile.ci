@@ -1,0 +1,36 @@
+# Stage 1: Build
+ARG UBUNTU_IMAGE_VERSION="24.04"
+FROM ubuntu:${UBUNTU_IMAGE_VERSION} AS builder
+
+WORKDIR /opt
+RUN apt update && apt install -y curl wget tar lbzip2 jq
+
+ARG VERSION
+RUN wget -q https://github.com/solana-labs/solana/releases/download/${VERSION}/solana-release-x86_64-unknown-linux-gnu.tar.bz2 -O solana-${VERSION}.tar.bz2
+RUN tar -xf solana-${VERSION}.tar.bz2
+RUN pwd
+RUN ls -la solana-release/
+
+
+# Stage 2: Run
+FROM ubuntu:${UBUNTU_IMAGE_VERSION}
+
+RUN apt-get update && apt-get install -y iputils-ping net-tools bzip2 libssl-dev htop ca-certificates && apt-get clean
+COPY  --from=builder /opt/solana-release/bin/ /usr/local/bin/
+
+WORKDIR /opt/solana
+
+
+
+ARG TIMESTAMP
+ARG VERSION
+RUN echo "version: ${VERSION}" > version.txt && \
+    echo "timestamp: ${TIMESTAMP}" >> version.txt
+
+LABEL timestamp="${TIMESTAMP}"
+LABEL version="${VERSION}"
+
+# JSONRPC over HTTP
+EXPOSE 8899
+
+CMD ["solana-validator"]
