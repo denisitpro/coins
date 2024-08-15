@@ -1,0 +1,37 @@
+# Stage 1: Build
+ARG UBUNTU_IMAGE_VERSION="24.04"
+FROM ubuntu:${UBUNTU_IMAGE_VERSION} AS builder
+
+WORKDIR /opt
+RUN apt update && apt install -y curl wget tar
+
+ARG VERSION
+RUN wget -q https://github.com/ava-labs/avalanchego/releases/download/${VERSION}/avalanchego-linux-amd64-${VERSION}.tar.gz -O avalanche-$VERSION.tar.gz
+RUN ls -la
+RUN tar -xf avalanche-$VERSION.tar.gz
+RUN ls -la avalanchego-${VERSION}
+RUN pwd
+
+
+# Stage 2: Run
+FROM ubuntu:${UBUNTU_IMAGE_VERSION}
+
+RUN apt update && apt install -y iputils-ping nano vim net-tools netcat-traditional curl jq htop && apt-get clean
+
+ARG VERSION
+COPY  --from=builder /opt/avalanchego-${VERSION}/avalanchego /usr/local/bin/
+
+WORKDIR /opt/avalanchego
+
+ARG TIMESTAMP
+ARG VERSION
+RUN echo "version: ${VERSION}" > version.txt && \
+    echo "timestamp: ${TIMESTAMP}" >> version.txt
+
+LABEL timestamp="${TIMESTAMP}"
+LABEL version="${VERSION}"
+
+# api port
+EXPOSE 9650
+
+CMD ["avalanchego"]
