@@ -47,7 +47,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./${{ matrix.coin_folder }}
-          file: ./${{ matrix.coin_folder }}/dockerfile.ci
+          file: ./${{ matrix.coin_folder }}/${{ env.DOCKER_FILE }}
           push: true
           tags: |
             ${{ env.DOCKER_REPO }}:${{ env.VERSION }}
