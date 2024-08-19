@@ -4,8 +4,8 @@ on:
   push:
     paths:
 #      - '**/*'  # only debug
-      - polygon/version.txt
-      - polygon/dockerfile.ci
+      - polygon/heimdall_version.txt
+      - polygon/heimdall.ci
 
 
 jobs:
@@ -17,8 +17,8 @@ jobs:
         coin_folder: ['polygon']
 
     env:  # set global vas
-      DOCKER_REPO: denisitpro/coin-polygon
-      DOCKER_FILE: dockerfile.ci
+      DOCKER_REPO: denisitpro/coin-heimdall
+      DOCKER_FILE: heimdall.ci
       UBUNTU_IMAGE_VERSION: "24.04"
 
     steps:
@@ -32,8 +32,8 @@ jobs:
         id: vars
         run: |
           cd ${{ matrix.coin_folder }}
-          echo "VERSION=$(cat version.txt)"
-          echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
+          echo "HEIMDALL_IMAGE_VERSION=$(cat heimdall_version.txt)"
+          echo "HEIMDALL_IMAGE_VERSION=$(cat heimdall_version.txt)" >> $GITHUB_ENV
           echo "TIMESTAMP=$(date -u +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
 
@@ -50,9 +50,9 @@ jobs:
           file: ./${{ matrix.coin_folder }}/${{ env.DOCKER_FILE }}
           push: true
           tags: |
-            ${{ env.DOCKER_REPO }}:${{ env.VERSION }}
+            ${{ env.DOCKER_REPO }}:${{ env.HEIMDALL_IMAGE_VERSION }}
             ${{ env.DOCKER_REPO }}:latest
           build-args: |
             TIMESTAMP=${{ env.TIMESTAMP }}
-            VERSION=${{ env.VERSION }}
+            HEIMDALL_IMAGE_VERSION=${{ env.HEIMDALL_IMAGE_VERSION }}
             UBUNTU_IMAGE_VERSION=${{ env.UBUNTU_IMAGE_VERSION }}
