@@ -1,0 +1,58 @@
+name: build polygon
+
+on:
+  push:
+    paths:
+#      - '**/*'  # only debug
+      - polygon/heimdall_version.txt
+      - polygon/heimdall.ci
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        coin_folder: ['polygon']
+
+    env:  # set global vas
+      DOCKER_REPO: denisitpro/coin-heimdall
+      DOCKER_FILE: heimdall.ci
+      UBUNTU_IMAGE_VERSION: "24.04"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract version
+        id: vars
+        run: |
+          cd ${{ matrix.coin_folder }}
+          echo "HEIMDALL_IMAGE_VERSION=$(cat heimdall_version.txt)"
+          echo "HEIMDALL_IMAGE_VERSION=$(cat heimdall_version.txt)" >> $GITHUB_ENV
+          echo "TIMESTAMP=$(date -u +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.coin_folder }}
+          file: ./${{ matrix.coin_folder }}/dockerfile.ci
+          push: true
+          tags: |
+            ${{ env.DOCKER_REPO }}:${{ env.HEIMDALL_IMAGE_VERSION }}
+            ${{ env.DOCKER_REPO }}:latest
+          build-args: |
+            TIMESTAMP=${{ env.TIMESTAMP }}
+            HEIMDALL_IMAGE_VERSION=${{ env.HEIMDALL_IMAGE_VERSION }}
+            UBUNTU_IMAGE_VERSION=${{ env.UBUNTU_IMAGE_VERSION }}
